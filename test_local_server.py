@@ -46,6 +46,7 @@ class ServerTests(unittest.TestCase):
     def test_no_login_and_standalone_week_json(self):
         self.assertEqual(self.request('/')[0], 200)
         self.assertEqual(self.request('/help.js')[0], 200)
+        self.assertEqual(self.request('/theme.js')[0], 200)
         self.assertEqual(self.request('/brand.svg')[0], 200)
         status, _, raw = self.request(self.file)
         self.assertEqual(status, 200)

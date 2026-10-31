@@ -7,8 +7,26 @@ import threading
 
 from app_paths import application_directory, default_data_directory, resource_directory, settings_path
 from local_server import make_server, running_url
-from platform_support import open_path
+from platform_support import open_path, set_window_theme
 from storage import Repository, atomic_write, encode, MAX_BYTES
+
+
+_settings_lock = threading.Lock()
+
+
+def _read_settings():
+    try:
+        value = json.loads(settings_path().read_text(encoding='utf-8'))
+        return value if isinstance(value, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _update_settings(changes):
+    with _settings_lock:
+        settings = _read_settings()
+        settings.update(changes)
+        atomic_write(settings_path(), encode(settings))
 
 
 class LocalSession:
@@ -43,6 +61,20 @@ class DesktopBridge:
     def __init__(self, session):
         self._session = session
         self._window = None
+
+    def get_theme(self):
+        theme = _read_settings().get('theme')
+        return theme if theme in ('dark', 'light') else 'dark'
+
+    def set_theme(self, theme):
+        if theme not in ('dark', 'light'):
+            raise ValueError('请选择日间或夜间模式')
+        _update_settings({'theme': theme})
+        set_window_theme(theme)
+        return True
+
+    def _page_url(self, session):
+        return session.url + '/?theme=' + self.get_theme()
 
     def copy_text(self, value):
         if not isinstance(value, str) or len(value.encode('utf-8')) > MAX_BYTES:
@@ -82,9 +114,9 @@ class DesktopBridge:
         replacement = LocalSession(directory)
         try:
             replacement.repository.bundle()
-            atomic_write(settings_path(), encode({'dataDirectory': str(directory),
-                         'applicationDirectory': str(application_directory())}))
-            self._window.load_url(replacement.url)
+            _update_settings({'dataDirectory': str(directory),
+                              'applicationDirectory': str(application_directory())})
+            self._window.load_url(self._page_url(replacement))
         except Exception:
             replacement.close()
             raise
@@ -108,7 +140,7 @@ def main():
     args = parser.parse_args()
     if args.check:
         root = resource_directory()
-        for name in ('dist/index.html', 'dist/app.js', 'dist/style.css', 'dist/reading-plan.js', 'dist/help.js', 'dist/brand.svg', '记录读写说明.md'):
+        for name in ('dist/index.html', 'dist/app.js', 'dist/style.css', 'dist/reading-plan.js', 'dist/help.js', 'dist/theme.js', 'dist/brand.svg', '记录读写说明.md'):
             if not (root / name).is_file():
                 raise FileNotFoundError('缺少应用资源：' + name)
         projects = Repository(args.data_dir).bundle()[0]['projects']
@@ -120,10 +152,11 @@ def main():
     session = LocalSession(args.data_dir)
     bridge = DesktopBridge(session)
     try:
-        window = webview.create_window('项目札记', session.url, js_api=bridge,
+        window = webview.create_window('项目札记', bridge._page_url(session), js_api=bridge,
                     width=1200, height=820, min_size=(820, 600), text_select=True,
-                    background_color='#f4f8fc')
+                    background_color='#05070b' if bridge.get_theme() == 'dark' else '#f4f8fc')
         bridge._window = window
+        window.events.shown += lambda: set_window_theme(bridge.get_theme())
         menu = [Menu('资料', [MenuAction('打开资料文件夹', bridge.open_data_directory),
                              MenuAction('选择资料目录…', bridge._choose_from_menu),
                              MenuAction('退出项目札记', window.destroy)])]

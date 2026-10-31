@@ -13,6 +13,41 @@ import platform_support
 
 
 class DesktopTests(unittest.TestCase):
+    @patch('desktop.set_window_theme')
+    def test_theme_survives_restart_without_replacing_data_preferences(self, appearance):
+        with tempfile.TemporaryDirectory() as directory, patch('desktop.settings_path', return_value=Path(directory)/'settings.json'):
+            settings = Path(directory)/'settings.json'
+            original = {'dataDirectory': '/chosen/records', 'applicationDirectory': '/chosen/app', 'futurePreference': True}
+            settings.write_text(json.dumps(original), encoding='utf-8')
+            bridge = DesktopBridge(None)
+            self.assertEqual(bridge.get_theme(), 'dark')
+            bridge.set_theme('light')
+            self.assertEqual(DesktopBridge(None).get_theme(), 'light')
+            self.assertEqual(json.loads(settings.read_text(encoding='utf-8')), {**original, 'theme': 'light'})
+            appearance.assert_called_once_with('light')
+            with self.assertRaises(ValueError):
+                bridge.set_theme('unsupported')
+            self.assertEqual(DesktopBridge(None).get_theme(), 'light')
+
+    def test_selecting_another_data_folder_keeps_theme_and_initial_page_appearance(self):
+        fake = SimpleNamespace(FileDialog=SimpleNamespace(FOLDER=2))
+        with tempfile.TemporaryDirectory() as directory, patch.dict('sys.modules', webview=fake):
+            root = Path(directory)
+            chosen = root/'chosen'; chosen.mkdir()
+            settings = root/'settings.json'
+            settings.write_text(json.dumps({'theme': 'light', 'futurePreference': True}), encoding='utf-8')
+            previous = Mock(repository=SimpleNamespace(directory=root))
+            replacement = Mock(url='http://127.0.0.1:4274')
+            bridge = DesktopBridge(previous)
+            bridge._window = Mock()
+            bridge._window.create_file_dialog.return_value = [str(chosen)]
+            with patch('desktop.settings_path', return_value=settings), patch('desktop.LocalSession', return_value=replacement):
+                bridge.choose_data_directory()
+            self.assertEqual(json.loads(settings.read_text(encoding='utf-8'))['theme'], 'light')
+            self.assertTrue(json.loads(settings.read_text(encoding='utf-8'))['futurePreference'])
+            bridge._window.load_url.assert_called_once_with('http://127.0.0.1:4274/?theme=light')
+            previous.close.assert_called_once()
+
     def test_desktop_service_owns_its_lifetime(self):
         with tempfile.TemporaryDirectory() as directory:
             service = LocalSession(directory, port=0)

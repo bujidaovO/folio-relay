@@ -39,3 +39,13 @@ def open_path(path):
         command = '/usr/bin/open' if sys.platform == 'darwin' else 'xdg-open'
         subprocess.run([command, path], check=True, stdout=subprocess.DEVNULL,
                        stderr=subprocess.PIPE, text=True, timeout=10)
+
+
+def set_window_theme(theme):
+    """Match macOS window chrome without changing the user's system appearance."""
+    if sys.platform != 'darwin':
+        return
+    from AppKit import NSApplication, NSAppearance, NSAppearanceNameAqua, NSAppearanceNameDarkAqua
+    from PyObjCTools.AppHelper import callAfter
+    name = NSAppearanceNameDarkAqua if theme == 'dark' else NSAppearanceNameAqua
+    callAfter(lambda: NSApplication.sharedApplication().setAppearance_(NSAppearance.appearanceNamed_(name)))

@@ -28,6 +28,8 @@ Mac 上双击构建得到的 `项目札记.app`，可在独立窗口操作，不
 
 窗口右上角“使用说明”按开始与交接、首次设置、续接与换周、查看与补记、资料与迁移说明操作、目的和完成标志。日常闭环是：确认起点、开展工作、管理者保存交接、在页面核对、下次从最新记录继续。
 
+窗口右上角可切换日间与夜间模式。首次使用默认夜间，以黑色、墨蓝为底色；外观选择保存在本机应用设置中，与项目资料分开，重新打开或切换资料目录后保留。浏览器版在当前浏览器记住选择。
+
 应用默认识别程序旁边的“项目资料”；Windows 文件夹版也检查程序目录上一级。可通过系统菜单“资料 → 选择资料目录…”指定另一份包含 `projects/` 的资料根目录。同一程序位置下会记住该选择；仅有程序而没有旁边资料时，使用用户 Documents 下的“项目札记/项目资料”。
 
 ## 从源码运行
@@ -82,10 +84,10 @@ python build_app.py
 | `local_server.py` | 本机 HTTP 接口与静态资源 |
 | `storage.py` | 通用 JSON 校验、保存、版本检查、备份和归档 |
 | `app_paths.py` / `platform_support.py` | 路径定位与系统差异 |
-| `dist/` | 页面、样式、角色读取清单和给人的使用说明 |
+| `dist/` | 页面、日夜配色与外观切换、角色读取清单和给人的使用说明 |
 | `assets/` | 程序图标与生成工具 |
 | `build_app.py` / `project_notes.spec` | Mac 与 Windows 打包 |
-| `test_*.py` / `test_reading_plan.js` | 临时资料和虚构项目验证 |
+| `test_*.py` / `test_*.js` | 临时资料、虚构项目与外观偏好验证 |
 | `AGENTS.md` | 软件开发约定 |
 | `记录读写说明.md` | 被管理项目共用的记录格式及保存协议 |
 
@@ -111,7 +113,7 @@ python build_app.py
 
 ```sh
 python -m unittest discover -s . -p 'test_*.py'
-node --test test_reading_plan.js
+node --test test_reading_plan.js test_theme.js
 ```
 
 Node 只用于此项前端逻辑检查，应用运行不依赖 Node。资料和打包资源检查可显式选择独立资料目录：

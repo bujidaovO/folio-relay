@@ -117,7 +117,7 @@ def make_server(repository, port=4173):
                     with repository.locked():
                         data, revision = repository.read(match[1], match[2])
                     self.respond(200, data, revision)
-                elif path in {'/', '/index.html', '/app.js', '/reading-plan.js', '/help.js', '/brand.svg', '/style.css'}:
+                elif path in {'/', '/index.html', '/app.js', '/reading-plan.js', '/help.js', '/theme.js', '/brand.svg', '/style.css'}:
                     super().do_GET()
                 elif path == '/favicon.ico':
                     self.respond(204)

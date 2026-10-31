@@ -20,7 +20,7 @@ exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='项目札记',
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='项目札记')
 if mac:
     app = BUNDLE(coll, name='项目札记.app', icon=str(root / 'assets' / 'app.icns'),
-        bundle_identifier='local.bujidao.project-notes', version='1.0.2',
+        bundle_identifier='local.bujidao.project-notes', version='1.1.0',
         info_plist={'CFBundleDisplayName': '项目札记',
                     'CFBundleDevelopmentRegion': 'zh_CN',
                     'NSHighResolutionCapable': True,
