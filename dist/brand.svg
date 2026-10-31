@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <title>项目札记 · 扇页与接续</title>
+  <defs>
+    <linearGradient id="tile" x1="165" y1="100" x2="836" y2="940" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F0F8FF"/><stop offset=".5" stop-color="#D5EAFB"/><stop offset="1" stop-color="#AFCFEB"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="334" y1="251" x2="774" y2="814" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#639CCD"/><stop offset="1" stop-color="#2D689F"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="338" y1="240" x2="702" y2="797" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#F0F7FD"/>
+    </linearGradient>
+    <linearGradient id="route" x1="382" y1="640" x2="592" y2="398" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#629ED0"/><stop offset="1" stop-color="#2B6499"/>
+    </linearGradient>
+    <filter id="tile-shadow" x="0" y="0" width="1024" height="1024" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#24547C" flood-opacity=".16"/>
+    </filter>
+    <filter id="page-shadow" x="96" y="120" width="836" height="812" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#20517D" flood-opacity=".2"/>
+    </filter>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#tile)" filter="url(#tile-shadow)"/>
+  <rect x="65.5" y="65.5" width="893" height="893" rx="206.5" stroke="#FFFFFF" stroke-opacity=".7" stroke-width="3"/>
+  <g transform="translate(40 0)">
+    <rect x="276" y="214" width="448" height="568" rx="58" transform="rotate(-18 500 760)" fill="url(#blue)"/>
+    <rect x="276" y="214" width="448" height="568" rx="58" transform="rotate(-9 500 760)" fill="#8CB9DC"/>
+    <g filter="url(#page-shadow)">
+    <rect x="276" y="214" width="448" height="568" rx="58" fill="url(#paper)"/>
+    <rect x="277" y="215" width="446" height="566" rx="57" stroke="white" stroke-width="2"/>
+    <path d="M600 214H656V365L628 345L600 365V214Z" fill="url(#blue)"/>
+    <rect x="360" y="337" width="116" height="23" rx="11.5" fill="#C7DEEF"/>
+    <path d="M382 628V565C382 535 406 511 436 511H537C567 511 591 487 591 457V415" stroke="url(#route)" stroke-width="34" stroke-linecap="round"/>
+    <circle cx="382" cy="628" r="29" fill="#629ED0"/>
+    <circle cx="591" cy="415" r="29" fill="#2B6499"/>
+    <rect x="360" y="697" width="148" height="16" rx="8" fill="#D7E7F3"/>
+    </g>
+  </g>
+</svg>

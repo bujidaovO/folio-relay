@@ -1,0 +1,17 @@
+data/
+项目资料/
+本地开发资料/
+.openai/
+*.app/
+项目札记/
+__pycache__/
+.DS_Store
+outputs/
+.venv/
+build/
+*.egg-info/
+.env
+.env.*
+!.env.example
+docs/讨论记录.md
+docs/验证记录.md
