@@ -1,0 +1,52 @@
+name: Build Windows app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [windows-build]
+
+permissions:
+  contents: read
+
+jobs:
+  windows-x64:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Test project storage and desktop backend
+        run: python -m unittest discover -v
+      - name: Build portable application
+        run: |
+          python -m pip install --no-cache-dir -r requirements-build.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python build_app.py --output "$env:RUNNER_TEMP/folio-relay"
+      - name: Verify bundled resources and external data directory
+        run: |
+          $app = "$env:RUNNER_TEMP/folio-relay/项目札记"
+          $env:PROJECT_NOTES_DATA_DIR = "$env:RUNNER_TEMP/项目札记 验证资料"
+          $process = Start-Process -FilePath "$app/项目札记.exe" -ArgumentList '--check' -PassThru
+          if (-not $process.WaitForExit(30000)) {
+            $process.Kill()
+            throw 'Packaged app did not finish its resource check in 30 seconds.'
+          }
+          if ($process.ExitCode -ne 0) { throw "Resource check failed: $($process.ExitCode)" }
+          if (-not (Test-Path -LiteralPath "$env:PROJECT_NOTES_DATA_DIR/projects" -PathType Container)) {
+            throw 'Packaged app did not open the external data directory.'
+          }
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Folio-Relay-Windows-x64
+          path: ${{ runner.temp }}/folio-relay
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
