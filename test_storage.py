@@ -202,16 +202,21 @@ class StorageTests(unittest.TestCase):
         self.save('roadmap.json', update)
 
     def test_project_and_roadmap_roundtrip_without_external_documents(self):
-        before = self.repo.read(self.id, 'current/week01.json')[0]
         self.seed_stage()
         self.save('project.json', lambda d: d.update(collaboration=['先说明设计，再逐步实现']))
+        self.save('current/week01.json', lambda d: d['days'][0].update(status='已完成', summary='历史记录'))
+        self.save('current/week01-handoff.json', lambda d: d.update(status='已完成', summary='历史周交接'))
+        self.repo.next_week(self.id)
+        self.save('current/week02.json', lambda d: d['days'][0].update(status='进行中', summary='从这里继续'))
         files = {name: file['data'] for name, file in self.repo.files(self.id).items()}
-        self.assertEqual(files['current/week01.json'], before)
         self.assertEqual(set(files['roadmap.json']), {'schemaVersion', 'kind', 'goal', 'stages', 'weeklyPlans'})
-        files['project.json'] = dict(files['project.json'], id='restored-project')
-        self.repo.install(files)
-        self.assertEqual(self.repo.read('restored-project', 'roadmap.json')[0], files['roadmap.json'])
-        self.assertEqual(self.repo.read('restored-project', 'project.json')[0]['collaboration'], ['先说明设计，再逐步实现'])
+        restored = Repository(Path(self.temp.name) / '载入的资料')
+        restored_id = restored.install(json.loads(json.dumps(files)))
+        self.assertEqual(restored_id, self.id)
+        self.assertEqual({name: file['data'] for name, file in restored.files(restored_id).items()}, files)
+        self.assertEqual(files['project.json']['current'], {'week': 2, 'day': 1})
+        self.assertEqual(files['history/week01.json']['days'][0]['summary'], '历史记录')
+        self.assertEqual(files['history/week01-handoff.json']['summary'], '历史周交接')
 
     def test_stage_references_must_survive_roadmap_updates(self):
         self.seed_stage()

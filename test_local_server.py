@@ -73,7 +73,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(locations['active_directory'], str(self.repo.path(self.id, 'project.json').parent.resolve()))
         self.assertEqual(locations['current'], {'week': 1, 'day': 1})
         self.assertEqual(locations['reading_files'][0]['key'], 'agent-guide')
-        self.assertTrue(locations['reading_files'][0]['path'].endswith('/记录读写说明.md'))
+        self.assertEqual(Path(locations['reading_files'][0]['path']).name, '记录读写说明.md')
         self.assertEqual(self.request('/api/workspace')[1]['ETag'], before['ETag'])
         self.assertEqual(self.request(path, headers={'Origin': 'https://example.com'})[0], 403)
 
