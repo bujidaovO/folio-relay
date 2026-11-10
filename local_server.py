@@ -48,6 +48,12 @@ def make_server(repository, port=4173):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(ROOT / 'dist'), **kwargs)
 
+        def guess_type(self, path):
+            # Windows MIME registry entries can map .js to text/plain.
+            if Path(path).suffix.lower() == '.js':
+                return 'text/javascript'
+            return super().guess_type(path)
+
         def log_message(self, fmt, *args):
             if sys.stderr is not None and len(args) > 1 and str(args[1]) not in {'200', '201', '204', '304'}:
                 super().log_message(fmt, *args)
