@@ -1,4 +1,5 @@
 import json
+from http.server import SimpleHTTPRequestHandler
 from pathlib import Path
 import subprocess
 import shutil
@@ -53,6 +54,16 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(json.loads(raw)['kind'], 'week')
         self.assertEqual(self.request(self.file.replace('.json', '-handoff.json'))[0], 200)
 
+    def test_scripts_use_javascript_mime_even_when_platform_mapping_is_wrong(self):
+        with patch.object(SimpleHTTPRequestHandler, 'guess_type', return_value='text/plain'):
+            for name in ('theme.js', 'reading-plan.js', 'app.js', 'help.js'):
+                with self.subTest(name=name):
+                    status, headers, _ = self.request('/' + name)
+                    self.assertEqual(status, 200)
+                    normalized = {key.lower(): value for key, value in headers.items()}
+                    self.assertEqual(normalized['content-type'], 'text/javascript')
+                    self.assertEqual(normalized['x-content-type-options'], 'nosniff')
+
     def test_conditional_read_and_conflicting_write(self):
         _, headers, _ = self.request('/api/workspace')
         self.assertEqual(self.request('/api/workspace', headers={'If-None-Match': headers['ETag']})[0], 304)
@@ -73,7 +84,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(locations['active_directory'], str(self.repo.path(self.id, 'project.json').parent.resolve()))
         self.assertEqual(locations['current'], {'week': 1, 'day': 1})
         self.assertEqual(locations['reading_files'][0]['key'], 'agent-guide')
-        self.assertTrue(locations['reading_files'][0]['path'].endswith('/记录读写说明.md'))
+        self.assertEqual(Path(locations['reading_files'][0]['path']).name, '记录读写说明.md')
         self.assertEqual(self.request('/api/workspace')[1]['ETag'], before['ETag'])
         self.assertEqual(self.request(path, headers={'Origin': 'https://example.com'})[0], 403)
 
